@@ -202,26 +202,22 @@ for (let slide = 1; slide <= titles.length; slide += 1) {
 
   const resource = slide === 23
   ? `
-    <div class="document-links">
+    <div class="document-link">
       <p><strong>Download a sample purchase order:</strong></p>
 
-      <div class="document-buttons">
-        ${downloadableDocuments
-          .map(
-            (doc) => `
-              <a
-                class="document-button"
-                href="assets/documents/${encodeURIComponent(doc.file)}"
-                target="_blank"
-                rel="noopener"
-              >
-                <span class="document-icon">PDF</span>
-                <span>${escapeHtml(doc.label)}</span>
-              </a>
-            `
-          )
-          .join('')}
-      </div>
+      ${downloadableDocuments
+        .map(
+          (doc) => `
+            <a
+              href="assets/documents/${encodeURIComponent(doc.file)}"
+              target="_blank"
+              rel="noopener"
+            >
+              ${escapeHtml(doc.label)}
+            </a>
+          `
+        )
+        .join('')}
     </div>
   `
   : '';
