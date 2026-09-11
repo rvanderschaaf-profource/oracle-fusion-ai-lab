@@ -1,3 +1,4 @@
+```js
 const notes = [
   'Sign in with the username and password assigned to you. Your home page may look slightly different.',
   'Navigate to Tools > AI Agent Studio.',
@@ -51,6 +52,12 @@ const titles = [
   'Debug the agent',
   'End of Lab'
 ];
+
+/*
+ * ============================================================
+ * PURCHASE ORDER AGENT PROMPT
+ * ============================================================
+ */
 
 const purchaseOrderPrompt = `## Role
 
@@ -145,15 +152,15 @@ If all required values are available, format the data using this structure:
     {
       "LineNumber": {LineNumber},
       "Description": "{lineDescription}",
-      "Quantity": {LineQuantity},
+      "Quantity": {lineQuantity},
       "Price": {Price},
       "schedules": [
         {
           "ScheduleNumber": {ScheduleNumber},
-          "Quantity": {ScheduleQuantity},
-          "PromisedDeliveryDate": "{PromisedDeliveryDate}",
-          "ShipToLocation": "{ShipToLocation}",
-          "ShipToOrganization": "{ShipToOrganization}"
+          "Quantity": {scheduleQuantity},
+          "PromisedDeliveryDate": "{promisedDeliveryDate}",
+          "ShipToLocation": "{shipToLocation}",
+          "ShipToOrganization": "{shipToOrganization}"
         }
       ]
     }
@@ -193,6 +200,13 @@ https://fa-erzv-dev4-saasfademo1.ds-fa.oraclepdemos.com/fscmUI/redwood/purchase-
 * Missing required values: list all missing values.
 * Be concise and professional.`;
 
+
+/*
+ * ============================================================
+ * COPY TEXT
+ * ============================================================
+ */
+
 const copyText = {
   9: `Agent Name: [Your initials][number] Purchase Order Handler Agent
 Family: Common
@@ -206,180 +220,511 @@ Description: An agent that can query supplier and purchase order data and create
   23: `Create a new purchase order based on the attached file.`
 };
 
+
+/*
+ * ============================================================
+ * DOWNLOADABLE SAMPLE DOCUMENTS
+ * ============================================================
+ */
+
 const downloadableDocuments = [
   {
-    file: 'assets/documents/SamplePO1.pdf',
+    file: 'SamplePO1.pdf',
     label: 'Purchase Order - Unknown Supplier'
   },
   {
-    file: 'assets/documents/SamplePO2.pdf',
+    file: 'SamplePO2.pdf',
     label: 'Purchase Order - Already Exists'
   },
   {
-    file: 'assets/documents/SamplePO3.pdf',
+    file: 'SamplePO3.pdf',
     label: 'Purchase Order - Create sample 1'
   },
   {
-    file: 'assets/documents/SamplePO4.pdf',
+    file: 'SamplePO4.pdf',
     label: 'Purchase Order - Create sample 2'
   }
 ];
 
-const steps = document.getElementById('steps');
-const contents = document.getElementById('contents');
 
-if (!steps || !contents) {
+/*
+ * ============================================================
+ * DOM ELEMENTS
+ * ============================================================
+ */
+
+const stepsContainer = document.getElementById('steps');
+const contentsContainer = document.getElementById('contents');
+
+if (!stepsContainer || !contentsContainer) {
   throw new Error(
     'Missing required HTML elements with id="steps" or id="contents".'
   );
 }
 
+
+/*
+ * ============================================================
+ * ASSET PATHS
+ * ============================================================
+ *
+ * Your GitHub Pages structure should be:
+ *
+ * oracle-fusion-ai-lab/
+ * ├── index.html
+ * ├── script.js
+ * ├── style.css
+ * └── assets/
+ *     ├── slides/
+ *     │   ├── 01.png
+ *     │   ├── 02.png
+ *     │   ├── ...
+ *     │   └── 23.png
+ *     └── documents/
+ *         ├── SamplePO1.pdf
+ *         ├── SamplePO2.pdf
+ *         ├── SamplePO3.pdf
+ *         └── SamplePO4.pdf
+ *
+ * Because this script is loaded from the lab page, relative
+ * paths are used intentionally.
+ */
+
+const slidesPath = './assets/slides/';
+const documentsPath = './assets/documents/';
+
+
+/*
+ * ============================================================
+ * CREATE STEP NAVIGATION
+ * ============================================================
+ */
+
+titles.forEach((title, index) => {
+  const stepNumber = index + 1;
+
+  const link = document.createElement('a');
+
+  link.href = `#step-${stepNumber}`;
+  link.textContent = stepNumber;
+  link.title = `Go to step ${stepNumber}`;
+  link.setAttribute('aria-label', `Go to step ${stepNumber}`);
+
+  stepsContainer.appendChild(link);
+});
+
+
+/*
+ * ============================================================
+ * CREATE LAB STEPS
+ * ============================================================
+ */
+
 for (let step = 1; step <= titles.length; step += 1) {
+
   const title = titles[step - 1];
   const note = notes[step - 1] || '';
 
+
   /*
-   * Create the complete step section.
+   * ----------------------------------------------------------
+   * STEP SECTION
+   * ----------------------------------------------------------
    */
+
   const section = document.createElement('section');
+
   section.className = 'lab-step';
   section.id = `step-${step}`;
 
+
   /*
-   * Create the step number.
+   * ----------------------------------------------------------
+   * STEP NUMBER
+   * ----------------------------------------------------------
    */
+
   const numberElement = document.createElement('div');
+
   numberElement.className = 'number';
   numberElement.textContent = `Step ${step}`;
 
+
   /*
-   * Create the content container.
+   * ----------------------------------------------------------
+   * CONTENT CONTAINER
+   * ----------------------------------------------------------
    */
+
   const stepContent = document.createElement('div');
+
   stepContent.className = 'step-content';
 
+
   /*
-   * Create the step title.
+   * ----------------------------------------------------------
+   * TITLE
+   * ----------------------------------------------------------
    */
+
   const heading = document.createElement('h2');
+
   heading.textContent = title;
 
+  stepContent.appendChild(heading);
+
+
   /*
-   * Create the notes.
+   * ----------------------------------------------------------
+   * NOTES
+   * ----------------------------------------------------------
    */
+
   const notesContainer = document.createElement('div');
+
   notesContainer.className = 'notes';
 
+
   if (note.trim() !== '') {
+
     const paragraphs = note.split('\n\n');
 
+
     paragraphs.forEach((paragraph) => {
-      if (paragraph.trim() === '') {
+
+      if (!paragraph.trim()) {
         return;
       }
 
+
       const paragraphElement = document.createElement('p');
+
       const lines = paragraph.split('\n');
 
+
       lines.forEach((line, lineIndex) => {
+
         if (lineIndex > 0) {
-          paragraphElement.appendChild(document.createElement('br'));
+          paragraphElement.appendChild(
+            document.createElement('br')
+          );
         }
+
 
         paragraphElement.appendChild(
           document.createTextNode(line)
         );
+
       });
 
+
       notesContainer.appendChild(paragraphElement);
+
     });
+
   }
 
+
   /*
-   * Add the four downloadable documents only to step 23.
+   * ----------------------------------------------------------
+   * DOWNLOADABLE DOCUMENTS
+   *
+   * Only displayed on step 23.
+   * ----------------------------------------------------------
    */
+
   if (step === 23) {
+
     const documentLinksContainer = document.createElement('div');
+
     documentLinksContainer.className = 'document-links';
 
+
     const documentHeading = document.createElement('p');
+
     const documentHeadingStrong = document.createElement('strong');
 
     documentHeadingStrong.textContent = 'Sample documents:';
+
     documentHeading.appendChild(documentHeadingStrong);
+
     documentLinksContainer.appendChild(documentHeading);
 
-    downloadableDocuments.forEach((document) => {
+
+    downloadableDocuments.forEach((doc) => {
+
       const paragraph = document.createElement('p');
+
       paragraph.className = 'document-link';
 
+
       const downloadLink = document.createElement('a');
-      downloadLink.href = document.file;
-      downloadLink.textContent = document.label;
-      downloadLink.setAttribute('download', '');
-      downloadLink.setAttribute('title', document.label);
+
+      /*
+       * Full relative path to the PDF.
+       *
+       * Example:
+       * ./assets/documents/SamplePO1.pdf
+       */
+
+      downloadLink.href =
+        `${documentsPath}${doc.file}`;
+
+
+      downloadLink.textContent = doc.label;
+
+      downloadLink.title = `Download ${doc.label}`;
+
+      downloadLink.setAttribute('download', doc.file);
+
 
       paragraph.appendChild(downloadLink);
+
       documentLinksContainer.appendChild(paragraph);
+
     });
 
-    notesContainer.appendChild(documentLinksContainer);
+
+    notesContainer.appendChild(
+      documentLinksContainer
+    );
+
   }
 
-  /*
-   * Add the copy block when copy text exists for this step.
-   */
-  let copyBlock = null;
 
-  if (copyText[step]) {
-    copyBlock = document.createElement('div');
+  /*
+   * Add notes to the step.
+   */
+
+  stepContent.appendChild(notesContainer);
+
+
+  /*
+   * ----------------------------------------------------------
+   * COPY BLOCK
+   * ----------------------------------------------------------
+   */
+
+  if (Object.prototype.hasOwnProperty.call(copyText, step)) {
+
+    const copyBlock = document.createElement('div');
+
     copyBlock.className = 'copy-block';
 
+
     const copyHeader = document.createElement('div');
+
     copyHeader.className = 'copy-head';
 
+
     const copyLabel = document.createElement('span');
+
     copyLabel.textContent = 'Text to enter';
 
+
     const copyButton = document.createElement('button');
+
     copyButton.type = 'button';
+
     copyButton.textContent = 'Copy';
 
+
     const copyContent = document.createElement('pre');
+
     copyContent.textContent = copyText[step];
 
+
+    /*
+     * Copy button.
+     */
+
     copyButton.addEventListener('click', async () => {
+
       try {
-        await navigator.clipboard.writeText(copyText[step]);
+
+        await navigator.clipboard.writeText(
+          copyText[step]
+        );
+
         copyButton.textContent = 'Copied';
-      } catch {
+
+      } catch (error) {
+
+        /*
+         * Fallback for browsers where clipboard API
+         * is unavailable.
+         */
+
+        copyContent.focus();
+
         copyButton.textContent = 'Select text';
+
       }
 
+
       window.setTimeout(() => {
+
         copyButton.textContent = 'Copy';
+
       }, 1600);
+
     });
 
+
     copyHeader.appendChild(copyLabel);
+
     copyHeader.appendChild(copyButton);
 
+
     copyBlock.appendChild(copyHeader);
+
     copyBlock.appendChild(copyContent);
+
+
+    stepContent.appendChild(copyBlock);
+
   }
 
+
   /*
-   * Show screenshots for steps 1 through 23.
-   * Step 24 is the final step and does not need a screenshot.
+   * ----------------------------------------------------------
+   * SCREENSHOT
+   * ----------------------------------------------------------
+   *
+   * Steps 1-23 have screenshots.
+   * Step 24 is the end of the lab.
+   * ----------------------------------------------------------
    */
+
   let visualElement;
 
+
   if (step === titles.length) {
+
+    /*
+     * Final step has no screenshot.
+     */
+
     visualElement = document.createElement('div');
+
     visualElement.className = 'empty-slide';
-    visualElement.setAttribute('aria-label', 'End of lab');
+
+    visualElement.setAttribute(
+      'aria-label',
+      'End of lab'
+    );
+
   } else {
+
+    /*
+     * Create screenshot image.
+     */
+
     visualElement = document.createElement('img');
+
     visualElement.className = 'slide-shot';
+
+
+    /*
+     * Convert:
+     *
+     * 1  -> 01
+     * 2  -> 02
+     * 9  -> 09
+     * 10 -> 10
+     *
+     * This was the main syntax problem in the original script.
+     */
+
+    const slideNumber = String(step).padStart(2, '0');
+
+
+    /*
+     * Expected:
+     *
+     * ./assets/slides/01.png
+     * ./assets/slides/02.png
+     * ...
+     * ./assets/slides/23.png
+     */
+
     visualElement.src =
-      `assets/slides/${String
+      `${slidesPath}${slideNumber}.png`;
+
+
+    visualElement.alt =
+      `Step ${step}: ${title}`;
+
+
+    visualElement.loading = 'lazy';
+
+
+    /*
+     * If an image cannot be found, show a useful message
+     * instead of silently displaying a broken image.
+     */
+
+    visualElement.addEventListener('error', () => {
+
+      const errorElement =
+        document.createElement('div');
+
+      errorElement.className = 'image-error';
+
+      errorElement.textContent =
+        `Screenshot unavailable: ${slidesPath}${slideNumber}.png`;
+
+
+      visualElement.replaceWith(
+        errorElement
+      );
+
+    });
+
+  }
+
+
+  /*
+   * ----------------------------------------------------------
+   * ASSEMBLE STEP
+   * ----------------------------------------------------------
+   */
+
+  section.appendChild(numberElement);
+
+  section.appendChild(stepContent);
+
+  section.appendChild(visualElement);
+
+
+  /*
+   * Add completed step to page.
+   */
+
+  contentsContainer.appendChild(section);
+
+}
+
+
+/*
+ * ============================================================
+ * OPTIONAL IMAGE DEBUGGING
+ * ============================================================
+ *
+ * Open the browser console to see which screenshot is being
+ * loaded if something is missing.
+ * ============================================================
+ */
+
+console.info(
+  `Loaded ${titles.length} lab steps.`
+);
+
+console.info(
+  `Screenshot directory: ${slidesPath}`
+);
+
+console.info(
+  `Document directory: ${documentsPath}`
+);
+```
