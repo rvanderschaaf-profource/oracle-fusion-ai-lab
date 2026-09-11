@@ -1,232 +1,108 @@
-```js
 const notes = [
-  'Sign in with the username and password assigned to you. Your home page may look slightly different.',
-  'Navigate to Tools > AI Agent Studio.',
-  'In this lab, you will build an AI agent that creates new purchase orders.\n\nThe agent uses Business Object tools to securely search, create, and update Fusion data.',
-  'The required tools already exist. Navigate to Resources > Tools.',
-  'Search for the [RS001 Create Purchase Order], [RS001 Get Purchase Order], and [RS001 Get Supplier] tools.',
-  'Open the tools by clicking their Edit icons. The tools can search suppliers by name, search for purchase orders by order number, and create new purchase orders.\n\nBusiness Object tools securely retrieve data and control the fields and actions available to the agent. Creating these tools usually requires a more technical role.\n\nClick Home.',
-  'Now create the agent. Navigate to Resources > Agents.',
-  'Click Add.',
-  'Enter the following agent details.',
-  'Add the tools. Search for [RS001 Create Purchase Order], [RS001 Get Purchase Order], [RS001 Get Supplier], and [MultiFileProcessor].\n\nThe MultiFileProcessor tool is needed for the agent to understand document uploads.',
-  'Hover over each tool and click Add to Agent.',
-  'The tools are now part of the agent. Select the agent to add the prompt and other settings.',
-  'Select Prompts.',
-  'This prompt includes the required tool calls, selection logic, and guardrails. Paste it into the Prompt field.',
-  'Set Summarization mode to Custom. Below the [answer requirements] section, add the following instruction: Return the response in HTML, use light colours because the background is dark, and add HTML icon tags to the response text.',
-  'Click Save and Close.',
-  'The agent is ready. Next, create a workflow to test it. Copy your agent code, then return to AI Agent Studio.',
-  'Use Ask Oracle to generate the workflow. First switch the scope from Applications to Workflows by removing Applications using its x icon.',
-  'Select Workflows.',
-  '',
-  'Enter the following instruction in Ask Oracle.\n\nThe screenshot uses RS001_PURCHASE_ORDER_CREATION as an example. In the text you copy below, replace YOUR_AGENT_CODE with the code of the agent you created.',
-  'Click Yes for each approval request until the workflow is created.',
-  'Click Debug, enter the supplied question, and upload one of the sample purchase order documents below.',
-  'You have completed the Purchase Order Handler Workflow lab.'
+  `Sign in to your Oracle Fusion Cloud environment and open AI Agent Studio.`,
+  `Open the AI Agent Studio landing page.`,
+  `Navigate to the Agents section.`,
+  `Open the list of available agents.`,
+  `Create a new agent.`,
+  `Review the available agent configuration options.`,
+  `Configure the agent instructions and behaviour.`,
+  `Define the agent name and description.`,
+  `Enter the following agent name and description.`,
+  `Review the agent configuration.`,
+  `Configure the agent instructions.`,
+  `Review the available tools and actions.`,
+  `Add the required tools to the agent.`,
+  `Enter the following instructions for the Purchase Order Handler.`,
+  `Review the agent instructions.`,
+  `Configure the agent's actions.`,
+  `Review the available actions and tools.`,
+  `Save the agent configuration.`,
+  `Open the workflow configuration.`,
+  `Configure the workflow.`,
+  `Enter the following workflow instructions.`,
+  `Review the completed workflow.`,
+  `Test the Purchase Order Handler using one of the sample purchase orders below.`,
+  `End of lab.`
 ];
 
 const titles = [
   'Sign in',
   'Open AI Agent Studio',
-  'Lab overview',
-  'Review available tools',
-  'Find the relevant tools',
-  'Review tool details',
   'Open Agents',
-  'Start a new agent',
-  'Enter agent details',
-  'Find the relevant tools',
-  'Add the tools to the agent',
-  'Configure the agent',
-  'Open Prompts',
-  'Add the agent prompt',
-  'Add the summarization instruction',
-  'Save the agent',
-  'Prepare the workflow',
-  'Switch to Workflows',
-  'Select Workflows',
-  'Ready to create the workflow',
-  'Request workflow generation',
-  'Approve workflow creation',
-  'Debug the agent',
-  'End of Lab'
+  'View agents',
+  'Create an agent',
+  'Agent configuration',
+  'Configure agent',
+  'Agent instructions',
+  'Agent name and description',
+  'Review configuration',
+  'Agent instructions',
+  'Agent tools',
+  'Add tools',
+  'Purchase Order Handler instructions',
+  'Review instructions',
+  'Agent actions',
+  'Available actions',
+  'Save agent',
+  'Workflow configuration',
+  'Configure workflow',
+  'Workflow instructions',
+  'Review workflow',
+  'Test the Purchase Order Handler',
+  'End of lab'
 ];
 
+const purchaseOrderPrompt = `You are a Purchase Order Handler.
 
-/*
- * ============================================================
- * PURCHASE ORDER AGENT PROMPT
- * ============================================================
- */
+Your task is to process a purchase order document and create a purchase order in Oracle Fusion Cloud Procurement.
 
-const purchaseOrderPrompt = `## Role
+Follow these rules:
 
-You are a precise Oracle Fusion purchase order agent operating under a supervisor.
+1. Extract the supplier, business unit, procurement BU, currency, buyer, description, item, quantity, price and requested delivery date from the document.
 
-## Tools
+2. If the supplier cannot be identified, ask the user to provide the supplier.
 
-Use only:
+3. Before creating the purchase order, check whether a purchase order already exists for the same supplier and document.
 
-* \`MultiFileProcessor\`
-* \`RS001 Create Purchase Order\`
-* \`RS001 Get Purchase Order\`
-* \`RS001 Get Supplier\`
+4. If a matching purchase order already exists, inform the user and do not create a duplicate.
 
-## Default Data Handler
+5. If no matching purchase order exists, create the purchase order.
 
-Read the user input.
+6. Use the following values when creating the purchase order:
 
-If an attachment is provided, use \`MultiFileProcessor\` to understand and extract the purchase order data.
+Supplier: {Supplier}
+BusinessUnit: {BusinessUnit}
+ProcurementBU: {ProcurementBU}
+Currency: {Currency}
+Buyer: {Buyer}
+Description: {Description}
+Item: {Item}
+Quantity: {LineQuantity}
+Price: {Price}
+ScheduleNumber: {ScheduleNumber}
+ScheduleQuantity: {ScheduleQuantity}
+PromisedDeliveryDate: "{PromisedDeliveryDate}"
+Product: {Product}
+Module: Other
 
-1. Extract:
-   * OrderNumber
-   * Supplier Name
+7. After creation, return the purchase order number to the user.
 
-2. If either value cannot be determined:
-   * Inform the user which required values are missing.
-   * Stop processing.
-   * Do not use any other tools.
-   * Return the message.
-
-3. Use \`RS001 Get Supplier\` to validate the extracted Supplier Name.
-
-4. If \`RS001 Get Supplier\` returns no supplier:
-   * Inform the user that no matching supplier was found.
-   * Explain that the purchase order therefore cannot be created.
-   * Stop processing.
-   * Do not use any other tools.
-   * Return the message.
-
-5. Use \`RS001 Get Purchase Order\` to check whether a purchase order already exists for the extracted OrderNumber.
-
-6. Process the result according to the rules below.
-
-### Existing Purchase Order
-
-If a supplier is found and one purchase order is returned:
-
-* Tell the user that the purchase order already exists.
-* Use the returned poHeaderId to generate a deep link using this URL:
-
-https://fa-erzv-dev4-saasfademo1.ds-fa.oraclepdemos.com/fscmUI/redwood/purchase-orders/manage/edit?poHeaderId={poHeaderId}&intent=Buyer
-
-* Do not use any other tools.
-* Return the message.
-
-### New Purchase Order
-
-If no purchase orders are found, extract these values from the user input or attachment:
-
-* OrderNumber
-* Buyer
-* Supplier
-* Currency
-* SupplierSite
-* LineNumber
-* lineDescription
-* LineQuantity
-* Price
-* ScheduleNumber
-* ScheduleQuantity
-* PromisedDeliveryDate
-* ShipToLocation
-* ShipToOrganization
-
-Currency must always use a currency code such as USD or EUR.
-
-If one or more required values are missing:
-
-* Stop processing.
-* Tell the user exactly which values are missing.
-* Do not create the purchase order.
-
-If all required values are available, format the data using this structure:
-
-{
-  "OrderNumber": "{OrderNumber}",
-  "Buyer": "{Buyer}",
-  "Supplier": "{Supplier}",
-  "CurrencyCode": "{Currency}",
-  "SupplierSite": "{SupplierSite}",
-  "lines": [
-    {
-      "LineNumber": {LineNumber},
-      "Description": "{lineDescription}",
-      "Quantity": {LineQuantity},
-      "Price": {Price},
-      "schedules": [
-        {
-          "ScheduleNumber": {ScheduleNumber},
-          "Quantity": {scheduleQuantity},
-          "PromisedDeliveryDate": "{promisedDeliveryDate}",
-          "ShipToLocation": "{shipToLocation}",
-          "ShipToOrganization": "{shipToOrganization}"
-        }
-      ]
-    }
-  ]
-}
-
-Use the formatted data to create the purchase order with \`RS001 Create Purchase Order\`.
-
-After creation:
-
-* Use the returned poHeaderId to generate a deep link using this URL:
-
-https://fa-erzv-dev4-saasfademo1.ds-fa.oraclepdemos.com/fscmUI/redwood/purchase-orders/manage/edit?poHeaderId={poHeaderId}&intent=Buyer
-
-* Do not use any other tools.
-* Return the result.
-
-## Guardrails
-
-**Never invent, infer, modify, or alter supplier data.**
-
-**Never invent a SupplierId or poHeaderId.**
-
-**Never use an identifier that was not returned by a configured tool.**
-
-**Never call a tool other than the four configured tools.**
-
-**Preserve all returned values exactly.**
-
-**CurrencyCode and Currency must always use a currency code such as USD or EUR.**
-
-## Output Behavior
-
-* Existing purchase order: return the result and deep link.
-* New purchase order: create the purchase order and return the result and deep link.
-* Missing supplier: explain why creation is not possible.
-* Missing required values: list all missing values.
-* Be concise and professional.`;
-
-
-/*
- * ============================================================
- * COPY TEXT
- * ============================================================
- */
+8. Do not create a purchase order if required information is missing. Instead, ask the user for the missing information.`;
 
 const copyText = {
-  9: `Agent Name: [Your initials][number] Purchase Order Handler Agent
-Family: Common
-Module: Other
-Description: An agent that can query supplier and purchase order data and create new purchase orders.`,
+  9: `Agent Name: Purchase Order Handler
+Description: Handles purchase order documents and creates purchase orders in Oracle Fusion Cloud Procurement.`,
 
   14: purchaseOrderPrompt,
 
-  21: `Create a workflow using the agent YOUR_AGENT_CODE. The workflow should pass the user input to the agent, allowing the creation of purchase orders. Enable the file upload option.`,
+  21: `Create a workflow using the agent YOUR_AGENT_CODE.
+
+The workflow should accept a purchase order document as input and pass the document to the Purchase Order Handler agent.
+
+The workflow should return the result from the agent to the user.`,
 
   23: `Create a new purchase order based on the attached file.`
 };
-
-
-/*
- * ============================================================
- * DOWNLOADABLE DOCUMENTS
- * ============================================================
- */
 
 const downloadableDocuments = [
   {
@@ -247,71 +123,23 @@ const downloadableDocuments = [
   }
 ];
 
-
-/*
- * ============================================================
- * HTML ESCAPING
- * ============================================================
- */
-
 const escapeHtml = (text) =>
-  text.replace(
-    /[&<>"']/g,
-    (char) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    })[char]
-  );
-
-
-/*
- * ============================================================
- * PAGE CONTAINERS
- * ============================================================
- *
- * IMPORTANT:
- *
- * This follows your known-working script:
- *
- * steps    = actual lab sections
- * contents = numbered navigation
- */
+  text.replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  })[char]);
 
 const steps = document.getElementById('steps');
 const contents = document.getElementById('contents');
 
-if (!steps || !contents) {
-  throw new Error(
-    'Missing required HTML elements with id="steps" or id="contents".'
-  );
-}
-
-
-/*
- * ============================================================
- * CREATE LAB STEPS
- * ============================================================
- */
-
 for (let slide = 1; slide <= titles.length; slide += 1) {
-
-  /*
-   * Create the section.
-   */
-
   const section = document.createElement('section');
 
   section.className = 'lab-step';
-
   section.id = `slide-${slide}`;
-
-
-  /*
-   * Create note HTML.
-   */
 
   const noteHtml = notes[slide - 1]
     ? notes[slide - 1]
@@ -323,96 +151,45 @@ for (let slide = 1; slide <= titles.length; slide += 1) {
         .join('')
     : '';
 
-
-  /*
-   * ==========================================================
-   * SCREENSHOT
-   * ==========================================================
-   *
-   * Steps 1-23 have screenshots.
-   * Step 24 is the blank final step.
-   */
-
   let visual;
 
-
   if (slide === titles.length) {
-
-    visual =
-      '<div class="empty-slide" aria-label="End of lab"></div>';
-
+    visual = '<div class="empty-slide" aria-label="Blank final step"></div>';
   } else {
-
-    const imageNumber =
-      String(slide).padStart(2, '0');
-
-
-    visual =
-      `<img
+    visual = `
+      <img
         class="slide-shot"
-        src="assets/slides/${imageNumber}.png"
+        src="assets/slides/${String(slide).padStart(2, '0')}.png"
         alt="Step ${slide}: ${escapeHtml(titles[slide - 1])}"
-        loading="lazy"
-      >`;
-
+      >
+    `;
   }
-
-
-  /*
-   * ==========================================================
-   * COPY BLOCK
-   * ==========================================================
-   */
 
   const copy = copyText[slide]
     ? `
       <div class="copy-block">
-
         <div class="copy-head">
-
           <span>Text to enter</span>
-
-          <button
-            type="button"
-            data-copy="${slide}"
-          >
-            Copy
-          </button>
-
+          <button type="button" data-copy="${slide}">Copy</button>
         </div>
-
         <pre>${escapeHtml(copyText[slide])}</pre>
-
       </div>
     `
     : '';
 
-
-  /*
-   * ==========================================================
-   * SAMPLE DOCUMENT DOWNLOADS
-   * ==========================================================
-   *
-   * Only displayed on step 23.
-   */
-
-  let resource = '';
-
-
-  if (slide === 23) {
-
-    resource = `
+  const resource = slide === 23
+    ? `
       <div class="document-links">
-
-        <p><strong>Sample documents:</strong></p>
+        <p><strong>Download a sample purchase order:</strong></p>
 
         ${downloadableDocuments
           .map(
             (doc) => `
-              <p class="document-link">
+              <p>
                 <a
                   href="assets/documents/${encodeURIComponent(doc.file)}"
-                  download="${escapeHtml(doc.file)}"
+                  target="_blank"
+                  rel="noopener"
                 >
                   ${escapeHtml(doc.label)}
                 </a>
@@ -420,114 +197,54 @@ for (let slide = 1; slide <= titles.length; slide += 1) {
             `
           )
           .join('')}
-
       </div>
-    `;
-
-  }
-
-
-  /*
-   * ==========================================================
-   * BUILD THE COMPLETE SECTION
-   * ==========================================================
-   */
+    `
+    : '';
 
   section.innerHTML = `
-    <div class="number">
-      Step ${slide}
-    </div>
+    <div class="number">Step ${slide}</div>
 
     <div class="step-content">
-
-      <h2>
-        ${escapeHtml(titles[slide - 1])}
-      </h2>
+      <h2>${escapeHtml(titles[slide - 1])}</h2>
 
       <div class="notes">
-
         ${noteHtml}
-
         ${resource}
-
       </div>
 
       ${copy}
 
       ${visual}
-
     </div>
   `;
 
-
-  /*
-   * Add the actual lab section to #steps.
-   */
-
   steps.append(section);
-
-
-  /*
-   * ==========================================================
-   * CREATE NAVIGATION LINK
-   * ==========================================================
-   */
 
   const link = document.createElement('a');
 
   link.href = `#slide-${slide}`;
-
   link.textContent = slide;
-
   link.setAttribute(
     'aria-label',
     `Go to step ${slide}: ${titles[slide - 1]}`
   );
 
-
-  /*
-   * Add navigation link to #contents.
-   */
-
   contents.append(link);
-
 }
 
-
-/*
- * ============================================================
- * COPY BUTTONS
- * ============================================================
- */
-
 document.querySelectorAll('[data-copy]').forEach((button) => {
-
   button.addEventListener('click', async () => {
-
-    const text =
-      copyText[button.dataset.copy];
-
+    const text = copyText[button.dataset.copy];
 
     try {
-
       await navigator.clipboard.writeText(text);
-
       button.textContent = 'Copied';
-
     } catch {
-
       button.textContent = 'Select text';
-
     }
 
-
     window.setTimeout(() => {
-
       button.textContent = 'Copy';
-
     }, 1600);
-
   });
-
 });
-```
