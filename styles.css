@@ -27,4 +27,56 @@ pre { margin: 0; padding: 1rem; overflow-x: auto; white-space: pre-wrap; color: 
 button { padding: .38rem .7rem; color: #fff; background: transparent; border: 1px solid #8ab8c4; border-radius: .25rem; cursor: pointer; font: inherit; }
 button:hover, button:focus { background: #1b5362; }
 footer { padding: 2rem 0 3rem; color: var(--muted); font-size: .85rem; }
+.document-links {
+  max-width: 940px;
+  margin: 1.5rem 0;
+}
+
+.document-links p {
+  margin: 0 0 .8rem;
+}
+
+.document-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem;
+}
+
+.document-button {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .7rem 1rem;
+  color: #fff;
+  background: var(--teal);
+  border: 1px solid var(--teal);
+  border-radius: .3rem;
+  font-size: .9rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition: background .2s ease, transform .2s ease;
+}
+
+.document-button:hover,
+.document-button:focus {
+  color: #fff;
+  background: #004951;
+  border-color: #004951;
+  transform: translateY(-1px);
+}
+
+.document-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.5rem;
+  padding: 0 .3rem;
+  color: #fff;
+  background: var(--orange);
+  border-radius: .2rem;
+  font-size: .65rem;
+  font-weight: 850;
+  letter-spacing: .03em;
+}
 @media (max-width: 680px) { .hero { padding-bottom: 4rem; } .home-link { margin-bottom: 2.5rem; } .lab-step { grid-template-columns: 1fr; gap: .75rem; padding: 3rem 0; } }
