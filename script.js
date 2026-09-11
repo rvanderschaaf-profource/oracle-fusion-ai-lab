@@ -200,7 +200,7 @@ for (let slide = 1; slide <= titles.length; slide += 1) {
     `
     : '';
 
-  const resource = slide === 23
+ const resource = slide === 23
   ? `
     <div class="document-link">
       <p><strong>Download a sample purchase order:</strong></p>
@@ -212,6 +212,18 @@ for (let slide = 1; slide <= titles.length; slide += 1) {
               href="assets/documents/${encodeURIComponent(doc.file)}"
               target="_blank"
               rel="noopener"
+              style="
+                display: block;
+                width: 320px;
+                margin-bottom: 10px;
+                padding: 10px 14px;
+                color: #fff;
+                background: #005e68;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                font-weight: 750;
+                text-decoration: none;
+              "
             >
               ${escapeHtml(doc.label)}
             </a>
