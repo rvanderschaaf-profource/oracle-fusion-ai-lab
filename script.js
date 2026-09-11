@@ -201,28 +201,30 @@ for (let slide = 1; slide <= titles.length; slide += 1) {
     : '';
 
   const resource = slide === 23
-    ? `
-      <div class="document-links">
-        <p><strong>Download a sample purchase order:</strong></p>
+  ? `
+    <div class="document-links">
+      <p><strong>Download a sample purchase order:</strong></p>
 
+      <div class="document-buttons">
         ${downloadableDocuments
           .map(
             (doc) => `
-              <p>
-                <a
-                  href="assets/documents/${encodeURIComponent(doc.file)}"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  ${escapeHtml(doc.label)}
-                </a>
-              </p>
+              <a
+                class="document-button"
+                href="assets/documents/${encodeURIComponent(doc.file)}"
+                target="_blank"
+                rel="noopener"
+              >
+                <span class="document-icon">PDF</span>
+                <span>${escapeHtml(doc.label)}</span>
+              </a>
             `
           )
           .join('')}
       </div>
-    `
-    : '';
+    </div>
+  `
+  : '';
 
   section.innerHTML = `
     <div class="number">Step ${slide}</div>
