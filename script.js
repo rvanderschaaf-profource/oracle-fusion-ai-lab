@@ -1,107 +1,129 @@
 const notes = [
-  `Sign in to your Oracle Fusion Cloud environment and open AI Agent Studio.`,
-  `Open the AI Agent Studio landing page.`,
-  `Navigate to the Agents section.`,
-  `Open the list of available agents.`,
-  `Create a new agent.`,
-  `Review the available agent configuration options.`,
-  `Configure the agent instructions and behaviour.`,
-  `Define the agent name and description.`,
-  `Enter the following agent name and description.`,
-  `Review the agent configuration.`,
-  `Configure the agent instructions.`,
-  `Review the available tools and actions.`,
-  `Add the required tools to the agent.`,
-  `Enter the following instructions for the Purchase Order Handler.`,
-  `Review the agent instructions.`,
-  `Configure the agent's actions.`,
-  `Review the available actions and tools.`,
-  `Save the agent configuration.`,
-  `Open the workflow configuration.`,
-  `Configure the workflow.`,
-  `Enter the following workflow instructions.`,
-  `Review the completed workflow.`,
-  `Test the Purchase Order Handler using one of the sample purchase orders below.`,
-  `End of lab.`
+  'Sign in with the username and password assigned to you. Your home page may look slightly different.',
+  'Navigate to Tools > AI Agent Studio.',
+  'In this lab, you will build an AI agent that creates new purchase orders.\n\nThe agent uses Business Object tools to securely search Fusion data en create/update Fusion data.',
+  'The required tool already exists. Navigate to Resources > Tools.',
+  'Search for the [RS001 Create Purchase Order], [RS001 Get Purchase Order] and [RS001 Get Supplier] tool.', 
+  'Open the tool by clicking its Edit icon. It can search suppliers by name, search purchase order by order number and create new purchase orders.\n\nBusiness Object tools securely retrieve data and control the fields and actions available to the agent. Creating these tools usually requires a more technical role.\n\nClick Home.',
+  'Now create the agent. Navigate to Resources > Agents.',
+  'Click Add.',
+  'Enter the following agent details.',
+  'Add the tool. Search for [RS001 Create Purchase Order], [RS001 Get Purchase Order], [RS001 Get Supplier] and [MultiFileProcessor].\n\nThe MultiFileProcessor tool is needed for the agent to be able to understand document uploads.',
+  'Hover over the tool and click Add to Agent.',
+  'The tool is now part of the agent. Select the agent to add the prompt and other settings.',
+  'Select Prompts.',
+  'This prompt includes the required tool calls, selection logic, and guardrails. Paste it into the Prompt field.',
+  'Set Summarization mode to Custom. Add the following text below the [answer requirements] section: Return the response in HTML, add light colours since the background is dark and add html tag icons to the response text.',
+  'Click Save and Close.',
+  'The agent is ready. Next, create a workflow to test it. Copy your agent code, then select AI Agent Studio.',
+  'Use Ask Oracle to generate the workflow. First switch the scope from Applications to Workflows: remove Applications by clicking its x.',
+  'Select Workflows.',
+  '',
+  'Enter the following in Ask Oracle.\n\nThe screenshot uses RS001_PURCHASE_ORDER_CREATION as an example. In the text you copy below, replace YOUR_AGENT_CODE with the code of the agent you created.',
+  'Click Yes for each approval request until the workflow is created.',
+  'Click Debug, enter the following question and upload one of the sample attachments to create a new PO.',
+  ''
 ];
 
 const titles = [
-  'Sign in',
-  'Open AI Agent Studio',
-  'Open Agents',
-  'View agents',
-  'Create an agent',
-  'Agent configuration',
-  'Configure agent',
-  'Agent instructions',
-  'Agent name and description',
-  'Review configuration',
-  'Agent instructions',
-  'Agent tools',
-  'Add tools',
-  'Purchase Order Handler instructions',
-  'Review instructions',
-  'Agent actions',
-  'Available actions',
-  'Save agent',
-  'Workflow configuration',
-  'Configure workflow',
-  'Workflow instructions',
-  'Review workflow',
-  'Test the Purchase Order Handler',
-  'End of lab'
+  'Sign in', 'Open AI Agent Studio', 'Lab overview', 'Review available tools', 'Find the relevant tools', 'Review tool details', 'Open Agents', 'Start a new agent', 'Enter agent details', 'Find the relevant tool', 'Add the tool to the agent', 'Configure the agent', 'Open Prompts', 'Add the agent prompt', 'Add the summarization prompt', 'Save the agent', 'Prepare the workflow', 'Switch to Workflows', 'Select Workflows', 'Ready to create the workflow', 'Request workflow generation', 'Approve workflow creation', 'Debug the agent','End of Lab'
 ];
 
-const purchaseOrderPrompt = `You are a Purchase Order Handler.
+const purchaseOrderPrompt = `## Role
+You are a precise, Oracle Fusion purchase order agent operating under a supervisor.
 
-Your task is to process a purchase order document and create a purchase order in Oracle Fusion Cloud Procurement.
+## Tools
+Use only:
+* \`MultiFileProcessor\`
+* \`RS001 Create Purchase Order\`
+* \`RS001 Get Purchase Order\`
+* \`RS001 Get Supplier\`
 
-Follow these rules:
+## Default Data Handler
+Read the input. If an attachment is provided, use \`MultiFileProcessor\` to understand and extract the data.
 
-1. Extract the supplier, business unit, procurement BU, currency, buyer, description, item, quantity, price and requested delivery date from the document.
+1. Extract:
+   * OrderNumber
+   * Supplier Name
 
-2. If the supplier cannot be identified, ask the user to provide the supplier.
+2. If either value cannot be determined:
+   * Inform the user which required values are missing.
+   * Stop processing.
+   * Do not use any other tools.
+   * Return the message.
 
-3. Before creating the purchase order, check whether a purchase order already exists for the same supplier and document.
+3. Use \`RS001 Get Supplier\` to validate the extracted Supplier Name.
 
-4. If a matching purchase order already exists, inform the user and do not create a duplicate.
+4. If \`RS001 Get Supplier\` returns no supplier:
+   * Inform the user that no matching supplier was found and therefore the purchase order cannot be created.
+   * Stop processing.
+   * Do not use any other tools.
+   * Return the message.
 
-5. If no matching purchase order exists, create the purchase order.
+5. Use \`RS001 Get Purchase Order\` to check whether a purchase order already exists for the extracted OrderNumber.
 
-6. Use the following values when creating the purchase order:
+6. Process the results according to the rules below.
 
-Supplier: {Supplier}
-BusinessUnit: {BusinessUnit}
-ProcurementBU: {ProcurementBU}
-Currency: {Currency}
-Buyer: {Buyer}
-Description: {Description}
-Item: {Item}
-Quantity: {LineQuantity}
-Price: {Price}
-ScheduleNumber: {ScheduleNumber}
-ScheduleQuantity: {ScheduleQuantity}
-PromisedDeliveryDate: "{PromisedDeliveryDate}"
-Product: {Product}
-Module: Other
+### Exactly One Match
+If a supplier is found and one purchase order is returned:
+* Tell the user that a purchase order is found.
+* Use the following URL https://fa-erzv-dev4-saasfademo1.ds-fa.oraclepdemos.com/fscmUI/redwood/purchase-orders/manage/edit?poHeaderId={poHeaderId}&intent=Buyer to generate a deeplink to this purchase order.
+* Do not use any other tools, return the message.
 
-7. After creation, return the purchase order number to the user.
+### No Matches
+If no purchase orders are found:
+* Extract the values from the user input (use the tool \`MultiFileProcessor\` in case of a delivered attachment): OrderNumber, Buyer, Supplier, Currency (Always in valuta code like USD, EUR etc.), SupplierSite, LineNumbers, lineDescriptions, LineQuantitys, Prices, ScheduleNumber, ScheduleQuantity, PromisedDeliveryDate, ShipToLocation, ShipToOrganization.
+* If not all values all filled, stop the agent and mention which values you miss in the provided data. Otherwise proceed.
+* Format the data in the below sample payload, since records in array can occur: 
+	{
+		"OrderNumber": "{OrderNumber}",
+		"Buyer": "{Buyer}",
+		"Supplier": "{Supplier}",
+		"CurrencyCode": "{Currency}",
+		"SupplierSite": "{SupplierSite}",
+		"lines": [
+			{
+				"LineNumber": {LineNumber},
+				"Description": "{lineDescription}",
+				"Quantity": {LineQuantity},
+				"Price": {Price},
+				"schedules": [
+					{   
+					"ScheduleNumber":{ScheduleNumber},
+					"Quantity":{ScheduleQuantity},
+					"PromisedDeliveryDate": "{PromisedDeliveryDate}",
+					"ShipToLocation":"{ShipToLocation}",
+					"ShipToOrganization":"{ShipToOrganization}",
+					}
+				]
+			}
+		]
+	}
 
-8. Do not create a purchase order if required information is missing. Instead, ask the user for the missing information.`;
+* Use this data to create the purchase order using the tool \`RS001 Create Purchase Order\`.
+* Use the following URL https://fa-erzv-dev4-saasfademo1.ds-fa.oraclepdemos.com/fscmUI/redwood/purchase-orders/manage/edit?poHeaderId={poHeaderId}&intent=Buyer to generate a deeplink to this purchase order.
+* Do not use any other tools, return the message.
+
+## Guardrails
+**Never invent, infer, modify, or alter supplier data.**
+**Never invent a SupplierId.**
+**Never use a SupplierId that was not returned by the configured search tool.**
+**Never call a tool other than the two configured tools.**
+**Never create, update, delete, or modify supplier data.**
+**Preserve returned values exactly.
+**Currency Code and Currency always in valuta code like USD, EUR etc.
+
+## Output Behavior
+* Single match: return the full supplier-details result.
+* Multiple matches: return all search matches, then ask the user to select one.
+* No matches: state that no matching suppliers were found.
+* Be concise and professional.`;
 
 const copyText = {
-  9: `Agent Name: Purchase Order Handler
-Description: Handles purchase order documents and creates purchase orders in Oracle Fusion Cloud Procurement.`,
-
+  9: 'Agent Name: [Your initials][number] Purchase Order Handler Agent\nFamily: Common\nModule: Other\nDescription: An agent that can query on supplier and purchase order data. And can new create purchase orders.',
   14: purchaseOrderPrompt,
-
-  21: `Create a workflow using the agent YOUR_AGENT_CODE.
-
-The workflow should accept a purchase order document as input and pass the document to the Purchase Order Handler agent.
-
-The workflow should return the result from the agent to the user.`,
-
-  23: `Create a new purchase order based on the attached file.`
+  21: 'Create a workflow using the agent YOUR_AGENT_CODE. The workflow should pass the user input to the agent, allowing the creation of purchase orders. Enable the file upload option.',
+  23: 'Create a new purchase order based on the attached file.',
 };
 
 const downloadableDocuments = [
