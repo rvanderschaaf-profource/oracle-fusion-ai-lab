@@ -19,8 +19,8 @@ const notes = [
   'Use Ask Oracle to generate the workflow. First switch the scope from Applications to Workflows: remove Applications by clicking its x.',
   'Select Workflows.',
   '',
-  'Enter the following in Ask Oracle.\n\nThe screenshot uses RS001_PURCHASE_ORDER_CREATION as an example. In the text you copy below, replace YOUR_AGENT_CODE with the code of the agent you created.\n\nThe file-upload function can also be manually added by going to the settings > chat experience > enable file upload.',
-  'Click Yes for each approval request until the workflow is created.',
+  'Enter the following in Ask Oracle.\n\nThe screenshot uses RS001_PURCHASE_ORDER_CREATION as an example. In the text you copy below, replace YOUR_AGENT_CODE with the code of the agent you created.',
+  'Click Yes for each approval request until the workflow is created.\n\nThe file-upload can be manually enabled by going to the settings > chat experience > enable file upload.',
   'Click Debug, enter the following question and upload one of the sample attachments to create a new PO.',
   ''
 ];
